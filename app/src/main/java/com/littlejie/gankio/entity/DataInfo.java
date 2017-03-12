@@ -11,6 +11,20 @@ import java.util.List;
 
 public class DataInfo {
 
+    /**
+     * "_id":"58c20bed421aa90f13178638",
+     * "createdAt":"2017-03-10T10:14:05.519Z",
+     * "desc":"用注解把那些恶心的，或者有 Hack 功能的代码标注出来，每次调用 IDE 都会提醒你，这个函数调用有潜在风险。",
+     * "images":[
+     * "http://img.gank.io/04b7b2ed-dc05-401d-bd50-91ed632b096c"
+     * ],
+     * "publishedAt":"2017-03-10T11:43:50.30Z",
+     * "source":"chrome",
+     * "type":"Android",
+     * "url":"https://github.com/anupcowkur/here-be-dragons",
+     * "used":true,
+     * "who":"带马甲"
+     */
     @SerializedName("_id")
     private String id;
     @SerializedName("createAt")

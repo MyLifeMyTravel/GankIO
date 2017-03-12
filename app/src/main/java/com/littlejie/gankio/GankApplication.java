@@ -17,7 +17,6 @@ public class GankApplication extends BaseApplication {
         super.onCreate();
         ApiService.init();
         DisplayUtil.init(this);
-//        ImageLoaderUtil.init(this, Environment.getExternalStorageDirectory() + "/Test");
         if (LeakCanary.isInAnalyzerProcess(this)) {
             // This process is dedicated to LeakCanary for heap analysis.
             // You should not init your app in this process.

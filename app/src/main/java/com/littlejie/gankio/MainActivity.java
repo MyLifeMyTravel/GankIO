@@ -1,7 +1,6 @@
 package com.littlejie.gankio;
 
 import android.support.design.widget.NavigationView;
-import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
@@ -17,7 +16,6 @@ import com.littlejie.core.base.BaseActivity;
 import com.littlejie.core.base.Core;
 import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.modules.CategoryFragment;
-import com.littlejie.gankio.modules.ImageFragment;
 import com.littlejie.gankio.ui.adapter.TabAdapter;
 
 import java.util.ArrayList;
@@ -60,12 +58,8 @@ public class MainActivity extends BaseActivity
 
     private void initFragmentList() {
         mFragmentList = new ArrayList<>();
-        for (int i = 0; i < mTitles.length; i++) {
-            if (i == 1) {
-                mFragmentList.add(ImageFragment.newInstance(mTitles[1]));
-            } else {
-                mFragmentList.add(CategoryFragment.newInstance(mTitles[i]));
-            }
+        for (String mTitle : mTitles) {
+            mFragmentList.add(CategoryFragment.newInstance(mTitle));
         }
     }
 
@@ -90,8 +84,8 @@ public class MainActivity extends BaseActivity
 
     @OnClick(R.id.fab)
     void onFabClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show();
+//        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show();
     }
 
     @Override
