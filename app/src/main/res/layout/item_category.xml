@@ -23,30 +23,33 @@
             android:scaleType="centerCrop" />
 
         <TextView
+            android:id="@+id/tv_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/iv_image"
+            android:layout_marginRight="@dimen/medium"
+            android:layout_toLeftOf="@+id/iv_image"
+            android:textSize="@dimen/text_size_18" />
+
+        <TextView
             android:id="@+id/tv_author"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentLeft="true"
-            android:layout_alignTop="@+id/iv_image" />
+            android:layout_below="@+id/tv_desc"
+            android:layout_marginTop="@dimen/medium" />
 
         <TextView
             android:id="@+id/tv_publish_time"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignTop="@+id/iv_image"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@+id/tv_desc"
             android:layout_marginLeft="@dimen/small"
+            android:layout_marginTop="@dimen/medium"
             android:layout_toRightOf="@+id/tv_author"
             android:textColor="@android:color/darker_gray" />
-
-        <TextView
-            android:id="@+id/tv_desc"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/tv_author"
-            android:layout_marginRight="@dimen/medium"
-            android:layout_marginTop="@dimen/medium"
-            android:layout_toLeftOf="@+id/iv_image"
-            android:textSize="18sp" />
 
     </RelativeLayout>
 

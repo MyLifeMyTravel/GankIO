@@ -1,4 +1,4 @@
-package com.littlejie.gankio;
+package com.littlejie.gankio.modules;
 
 import android.support.design.widget.NavigationView;
 import android.support.design.widget.TabLayout;
@@ -15,7 +15,7 @@ import android.view.View;
 import com.littlejie.core.base.BaseActivity;
 import com.littlejie.core.base.Core;
 import com.littlejie.core.utils.ToastUtil;
-import com.littlejie.gankio.modules.CategoryFragment;
+import com.littlejie.gankio.R;
 import com.littlejie.gankio.ui.adapter.TabAdapter;
 
 import java.util.ArrayList;
@@ -58,8 +58,10 @@ public class MainActivity extends BaseActivity
 
     private void initFragmentList() {
         mFragmentList = new ArrayList<>();
-        for (String mTitle : mTitles) {
-            mFragmentList.add(CategoryFragment.newInstance(mTitle));
+        mFragmentList.add(DayPushFragment.newInstance());
+
+        for (int i = 1; i < mTitles.length; i++) {
+            mFragmentList.add(CategoryFragment.newInstance(mTitles[i]));
         }
     }
 
@@ -84,6 +86,7 @@ public class MainActivity extends BaseActivity
 
     @OnClick(R.id.fab)
     void onFabClick(View view) {
+        
 //        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
 //                .setAction("Action", null).show();
     }
@@ -91,6 +94,8 @@ public class MainActivity extends BaseActivity
     @Override
     protected void process() {
         mTabAdapter.setData(mFragmentList, mTitles);
+        //默认选中福利
+        mViewPager.setCurrentItem(1);
     }
 
     @Override

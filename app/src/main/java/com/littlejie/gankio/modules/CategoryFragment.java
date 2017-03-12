@@ -17,9 +17,11 @@ import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
 import com.littlejie.gankio.entity.GankInfo;
+import com.littlejie.gankio.exception.GankException;
 import com.littlejie.gankio.http.ApiService;
 import com.littlejie.gankio.ui.adapter.CategoryAdapter;
 import com.littlejie.gankio.ui.decoration.SpaceDecoration;
+import com.littlejie.gankio.utils.TimeUtil;
 
 import java.util.List;
 
@@ -119,13 +121,14 @@ public class CategoryFragment extends BaseFragment {
                     @Override
                     public void onNext(GankInfo<List<DataInfo>> listGankInfo) {
                         if (listGankInfo.isError()) {
-                            return;
+                            throw new GankException("服务器错误");
                         }
                         finishRefresh(isLoadMore);
+                        List<DataInfo> dataList = convertTime(listGankInfo.getResults());
                         if (isLoadMore) {
-                            mAdapter.addDataList(listGankInfo.getResults());
+                            mAdapter.addDataList(dataList);
                         } else {
-                            mAdapter.setDataList(listGankInfo.getResults());
+                            mAdapter.setDataList(dataList);
                         }
                     }
 
@@ -139,6 +142,15 @@ public class CategoryFragment extends BaseFragment {
 
                     }
                 });
+    }
+
+    private List<DataInfo> convertTime(List<DataInfo> dataList) {
+        for (int i = 0; i < dataList.size(); i++) {
+            DataInfo data = dataList.get(i);
+            data.setPublishedTime(TimeUtil.convertTime(data.getPublishedTime()));
+            dataList.set(i, data);
+        }
+        return dataList;
     }
 
     private void finishRefresh(boolean isLoadMore) {

@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.littlejie.gankio.MainActivity">
+    tools:context="com.littlejie.gankio.modules.MainActivity">
 
     <android.support.design.widget.AppBarLayout
         android:layout_width="match_parent"
@@ -28,6 +28,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:overlay="true"
+        app:wave_show="false"
         tools:context="com.littlejie.gankio.modules.WebActivity">
 
         <RelativeLayout
