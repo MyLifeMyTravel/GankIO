@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">GankIO</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+
+    <string-array name="category">
+        <item>每日精选</item>
+        <item>福利</item>
+        <item>Android</item>
+        <item>iOS</item>
+        <item>前端</item>
+        <item>拓展资源</item>
+        <item>休息视频</item>
+    </string-array>
+</resources>
