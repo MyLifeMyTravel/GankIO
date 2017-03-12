@@ -16,27 +16,21 @@ import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
-import com.littlejie.gankio.entity.GankInfo;
-import com.littlejie.gankio.exception.GankException;
-import com.littlejie.gankio.http.ApiService;
+import com.littlejie.gankio.modules.contract.ICategoryContact;
+import com.littlejie.gankio.modules.presenter.CategoryPresenter;
 import com.littlejie.gankio.ui.adapter.CategoryAdapter;
 import com.littlejie.gankio.ui.decoration.SpaceDecoration;
-import com.littlejie.gankio.utils.TimeUtil;
 
 import java.util.List;
 
 import butterknife.BindView;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
  * 按Gank IO中的类目显示信息
  * Created by littlejie on 2017/3/11.
  */
 
-public class CategoryFragment extends BaseFragment {
+public class CategoryFragment extends BaseFragment implements ICategoryContact.View {
 
     @BindView(R.id.swipe_refresh)
     MaterialRefreshLayout mSwipeRefreshLayout;
@@ -44,8 +38,8 @@ public class CategoryFragment extends BaseFragment {
     RecyclerView mRecyclerView;
     private CategoryAdapter mAdapter;
 
-    private String mCategory;
-    private int mCurrentPage = 1;
+    private ICategoryContact.Presenter mPresenter;
+    private boolean isLoadMore;
 
     public static CategoryFragment newInstance(String category) {
 
@@ -64,8 +58,9 @@ public class CategoryFragment extends BaseFragment {
 
     @Override
     protected void initData(Bundle savedInstanceState) {
+        mPresenter = new CategoryPresenter(this);
         if (getArguments() != null) {
-            mCategory = getArguments().getString(Constant.EXTRA_CATEGORY);
+            mPresenter.initData(getArguments());
         }
     }
 
@@ -73,7 +68,7 @@ public class CategoryFragment extends BaseFragment {
     protected void initView(View view, Bundle savedInstanceState) {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(5)));
-        mRecyclerView.setLayoutManager(Constant.Category.IMAGE.equals(mCategory)
+        mRecyclerView.setLayoutManager(mPresenter.isImageCategory()
                 ? new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
                 : new LinearLayoutManager(getContext()));
         mAdapter = new CategoryAdapter();
@@ -85,14 +80,15 @@ public class CategoryFragment extends BaseFragment {
         mSwipeRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mCurrentPage = 1;
-                getData(mCurrentPage, false);
+                isLoadMore = false;
+                mPresenter.loadCategory(false);
             }
         });
         mSwipeRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
-                getData(++mCurrentPage, true);
+                isLoadMore = true;
+                mPresenter.loadCategory(true);
             }
         });
         mAdapter.setOnItemClickListener(new CategoryAdapter.OnItemClickListener() {
@@ -105,66 +101,45 @@ public class CategoryFragment extends BaseFragment {
 
     @Override
     protected void process(Bundle savedInstanceState) {
-        getData(1, false);
+        mPresenter.loadCategory(false);
     }
 
-    private void getData(int page, final boolean isLoadMore) {
-        ApiService.getGankApi().getData(mCategory, Constant.COUNT, page)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<GankInfo<List<DataInfo>>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(GankInfo<List<DataInfo>> listGankInfo) {
-                        if (listGankInfo.isError()) {
-                            throw new GankException("服务器错误");
-                        }
-                        finishRefresh(isLoadMore);
-                        List<DataInfo> dataList = convertTime(listGankInfo.getResults());
-                        if (isLoadMore) {
-                            mAdapter.addDataList(dataList);
-                        } else {
-                            mAdapter.setDataList(dataList);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        ToastUtil.showDefaultToast(R.string.toast_request_fail);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-    }
-
-    private List<DataInfo> convertTime(List<DataInfo> dataList) {
-        for (int i = 0; i < dataList.size(); i++) {
-            DataInfo data = dataList.get(i);
-            data.setPublishedTime(TimeUtil.convertTime(data.getPublishedTime()));
-            dataList.set(i, data);
-        }
-        return dataList;
-    }
-
-    private void finishRefresh(boolean isLoadMore) {
+    @Override
+    public void updateData(List<DataInfo> dataList) {
         if (isLoadMore) {
-            mSwipeRefreshLayout.finishRefreshLoadMore();
+            stopLoadMoreRefresh();
+            mAdapter.addDataList(dataList);
         } else {
-            mSwipeRefreshLayout.finishRefresh();
+            stopPullRefresh();
+            mAdapter.setDataList(dataList);
         }
     }
 
-    private void toWebActivity(String url) {
+    @Override
+    public void stopPullRefresh() {
+        mSwipeRefreshLayout.finishRefresh();
+    }
+
+    @Override
+    public void stopLoadMoreRefresh() {
+        mSwipeRefreshLayout.finishRefreshLoadMore();
+    }
+
+    @Override
+    public void toWebActivity(String url) {
         Intent intent = new Intent(getContext(), WebActivity.class);
         intent.putExtra(Constant.EXTRA_STRING, url);
         startActivity(intent);
+    }
+
+    @Override
+    public void showMessage(int msg) {
+        ToastUtil.showDefaultToast(msg);
+    }
+
+    @Override
+    public void showMessage(CharSequence msg) {
+        ToastUtil.showDefaultToast(msg);
     }
 
 }
