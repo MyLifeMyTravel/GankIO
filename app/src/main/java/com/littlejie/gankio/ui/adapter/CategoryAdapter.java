@@ -40,6 +40,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     }
 
     public void setDataList(List<DataInfo> dataList) {
+        if (dataList == null || dataList.size() == 0) {
+            return;
+        }
         mDataList = dataList;
         notifyDataSetChanged();
     }
