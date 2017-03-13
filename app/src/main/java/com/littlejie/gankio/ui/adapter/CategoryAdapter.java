@@ -36,6 +36,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     private OnItemClickListener mOnItemClickListener;
 
     public CategoryAdapter() {
+        mDataList = new ArrayList<>();
         mHeightList = new ArrayList<>();
     }
 
