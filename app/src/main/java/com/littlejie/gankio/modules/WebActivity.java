@@ -1,5 +1,6 @@
 package com.littlejie.gankio.modules;
 
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -11,11 +12,10 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.ProgressBar;
 
-import com.cjj.MaterialRefreshLayout;
-import com.cjj.OnRefreshListener;
 import com.littlejie.core.base.BaseActivity;
 import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
+import com.littlejie.gankio.ui.ScrollWebView;
 
 import butterknife.BindView;
 
@@ -24,11 +24,11 @@ public class WebActivity extends BaseActivity {
     @BindView(R.id.toolbar)
     Toolbar mToolbar;
     @BindView(R.id.swipe_refresh)
-    MaterialRefreshLayout mSwipeRefreshLayout;
+    SwipeRefreshLayout mSwipeRefreshLayout;
     @BindView(R.id.progress_bar)
     ProgressBar mProgressBar;
     @BindView(R.id.web_view)
-    WebView mWebView;
+    ScrollWebView mWebView;
 
     private String mUrl;
 
@@ -74,11 +74,11 @@ public class WebActivity extends BaseActivity {
 
     @Override
     protected void initViewListener() {
-        mSwipeRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
                 mWebView.loadUrl(mUrl);
-                mSwipeRefreshLayout.finishRefresh();
+                mSwipeRefreshLayout.setRefreshing(false);
             }
         });
         mWebView.setWebChromeClient(new WebChromeClient() {
@@ -106,6 +106,17 @@ public class WebActivity extends BaseActivity {
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 view.loadUrl(url);
                 return true;
+            }
+        });
+        mWebView.setOnScrollChangedListener(new ScrollWebView.OnScrollChangedListener() {
+            @Override
+            public void onScrollChanged(int l, int t) {
+                Log.d(TAG, "l = " + l + ";t = " + t);
+                if (mWebView.getScrollY() == 0) {
+                    mSwipeRefreshLayout.setEnabled(true);
+                } else {
+                    mSwipeRefreshLayout.setEnabled(false);
+                }
             }
         });
     }
