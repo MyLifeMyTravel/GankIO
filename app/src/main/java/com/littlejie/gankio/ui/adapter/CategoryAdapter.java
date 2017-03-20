@@ -14,7 +14,9 @@ import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -26,18 +28,25 @@ import butterknife.ButterKnife;
 
 public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> implements View.OnClickListener {
 
+    private static final int TYPE_DATE = 0;
     private static final int TYPE_IMAGE = 1;
     private static final int TYPE_VIDEO = 2;
     private static final int TYPE_NORMAL = 3;
+    private static final String TAG = CategoryAdapter.class.getSimpleName();
 
     private List<DataInfo> mDataList;
-    private List<Integer> mHeightList;
-
+    private Map<Integer, Integer> mHeightMap;
+    //是否为每日精选
+    private boolean isDayPublish;
     private OnItemClickListener mOnItemClickListener;
 
     public CategoryAdapter() {
         mDataList = new ArrayList<>();
-        mHeightList = new ArrayList<>();
+        mHeightMap = new HashMap<>();
+    }
+
+    public void setDayPublish(boolean dayPublish) {
+        isDayPublish = dayPublish;
     }
 
     public void setDataList(List<DataInfo> dataList) {
@@ -66,8 +75,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             return TYPE_NORMAL;
         }
         String type = mDataList.get(position).getType();
+        Log.d(TAG, "type = " + type);
         if (TextUtils.isEmpty(type)) {
-            return TYPE_NORMAL;
+            return TYPE_DATE;
         }
         if (Constant.Category.IMAGE.equals(type)) {
             return TYPE_IMAGE;
@@ -78,7 +88,9 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        if (viewType == TYPE_IMAGE) {
+        if (viewType == TYPE_DATE) {
+            return new Date(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_date, parent, false));
+        } else if (viewType == TYPE_IMAGE) {
             return new Image(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_image, parent, false));
         } else {
             return new Normal(LayoutInflater.from(parent.getContext()).inflate(R.layout.item_category, parent, false));
@@ -90,11 +102,18 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         holder.itemView.setTag(position);
         holder.itemView.setOnClickListener(this);
         int type = getItemViewType(position);
-        if (type == TYPE_IMAGE) {
+        if (type == TYPE_DATE) {
+            bingDateViewHolder((Date) holder, position);
+        } else if (type == TYPE_IMAGE) {
             bindImageViewHolder((Image) holder, position);
         } else {
             bindNormalViewHolder((Normal) holder, position);
         }
+    }
+
+    private void bingDateViewHolder(Date holder, int position) {
+        String time = mDataList.get(position).getPublishedTime();
+        holder.tvDate.setText(time);
     }
 
     private void bindNormalViewHolder(Normal holder, int position) {
@@ -103,12 +122,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (images == null || images.size() == 0) {
             holder.ivImage.setVisibility(View.GONE);
         } else {
-            Log.d("Image", images.get(0));
             holder.ivImage.setVisibility(View.VISIBLE);
             holder.ivImage.setImage(images.get(0));
         }
         holder.tvAuthor.setText(data.getWho());
-        holder.tvPublish.setText(data.getPublishedTime());
+        holder.tvPublish.setText(isDayPublish ? data.getType() : data.getPublishedTime());
         holder.tvDesc.setText(data.getDesc());
     }
 
@@ -116,11 +134,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         String url = mDataList.get(position).getUrl();
 
         //随机生成图片高度
-        if (mHeightList.size() <= position) {
-            mHeightList.add((int) (Math.random() * 300 + 500));
+        if (mHeightMap.size() <= position) {
+            mHeightMap.put(position, (int) (Math.random() * 300 + 500));
         }
         ViewGroup.LayoutParams lp = holder.mImageView.getLayoutParams();
-        lp.height = mHeightList.get(position);
+        lp.height = mHeightMap.get(position);
         holder.mImageView.setLayoutParams(lp);
 
         if (!TextUtils.isEmpty(url)) {
@@ -148,6 +166,17 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
     public interface OnItemClickListener {
         void onItemClick(View view, int position);
+    }
+
+    static class Date extends RecyclerView.ViewHolder {
+
+        @BindView(R.id.tv_date)
+        TextView tvDate;
+
+        Date(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
     }
 
     static class Normal extends RecyclerView.ViewHolder {

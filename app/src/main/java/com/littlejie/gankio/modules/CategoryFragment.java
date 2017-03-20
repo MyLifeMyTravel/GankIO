@@ -1,10 +1,10 @@
 package com.littlejie.gankio.modules;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.cjj.MaterialRefreshLayout;
@@ -16,10 +16,11 @@ import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
-import com.littlejie.gankio.modules.contract.ICategoryContact;
+import com.littlejie.gankio.modules.contract.ICategoryContract;
 import com.littlejie.gankio.modules.presenter.CategoryPresenter;
 import com.littlejie.gankio.ui.adapter.CategoryAdapter;
 import com.littlejie.gankio.ui.decoration.SpaceDecoration;
+import com.littlejie.gankio.utils.AppCommand;
 
 import java.util.List;
 
@@ -30,7 +31,7 @@ import butterknife.BindView;
  * Created by littlejie on 2017/3/11.
  */
 
-public class CategoryFragment extends BaseFragment implements ICategoryContact.View {
+public class CategoryFragment extends BaseFragment implements ICategoryContract.View {
 
     @BindView(R.id.swipe_refresh)
     MaterialRefreshLayout mSwipeRefreshLayout;
@@ -38,8 +39,9 @@ public class CategoryFragment extends BaseFragment implements ICategoryContact.V
     RecyclerView mRecyclerView;
     private CategoryAdapter mAdapter;
 
-    private ICategoryContact.Presenter mPresenter;
+    private ICategoryContract.Presenter mPresenter;
     private boolean isLoadMore;
+    private String mCategory;
 
     public static CategoryFragment newInstance(String category) {
 
@@ -60,6 +62,8 @@ public class CategoryFragment extends BaseFragment implements ICategoryContact.V
     protected void initData(Bundle savedInstanceState) {
         mPresenter = new CategoryPresenter(this);
         if (getArguments() != null) {
+            //因为category与UI显示相关，所以放在View中处理
+            mCategory = getArguments().getString(Constant.EXTRA_CATEGORY);
             mPresenter.initData(getArguments());
         }
     }
@@ -67,8 +71,9 @@ public class CategoryFragment extends BaseFragment implements ICategoryContact.V
     @Override
     protected void initView(View view, Bundle savedInstanceState) {
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(5)));
-        mRecyclerView.setLayoutManager(mPresenter.isImageCategory()
+        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(2)));
+        //如果是图片类目，则按瀑布流显示否则按照线性布局显示
+        mRecyclerView.setLayoutManager(Constant.Category.IMAGE.equals(mCategory)
                 ? new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
                 : new LinearLayoutManager(getContext()));
         mAdapter = new CategoryAdapter();
@@ -101,7 +106,12 @@ public class CategoryFragment extends BaseFragment implements ICategoryContact.V
 
     @Override
     protected void process(Bundle savedInstanceState) {
-        mPresenter.loadCategory(false);
+        mPresenter.process();
+    }
+
+    @Override
+    public String getCategory() {
+        return mCategory;
     }
 
     @Override
@@ -127,9 +137,11 @@ public class CategoryFragment extends BaseFragment implements ICategoryContact.V
 
     @Override
     public void toWebActivity(String url) {
-        Intent intent = new Intent(getContext(), WebActivity.class);
-        intent.putExtra(Constant.EXTRA_STRING, url);
-        startActivity(intent);
+        if (TextUtils.isEmpty(url)) {
+            showMessage("错误的URL");
+            return;
+        }
+        AppCommand.openWebView(getContext(), url);
     }
 
     @Override

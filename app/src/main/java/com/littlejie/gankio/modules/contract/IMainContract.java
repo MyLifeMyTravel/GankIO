@@ -9,7 +9,7 @@ import java.util.List;
  * Created by littlejie on 2017/3/12.
  */
 
-public interface IMainContact {
+public interface IMainContract {
 
     interface View {
 

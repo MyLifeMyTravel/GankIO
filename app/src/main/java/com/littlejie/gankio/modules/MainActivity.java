@@ -17,7 +17,7 @@ import android.view.View;
 import com.littlejie.core.base.BaseActivity;
 import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.R;
-import com.littlejie.gankio.modules.contract.IMainContact;
+import com.littlejie.gankio.modules.contract.IMainContract;
 import com.littlejie.gankio.modules.presenter.MainPresenter;
 import com.littlejie.gankio.ui.adapter.TabAdapter;
 
@@ -27,7 +27,7 @@ import butterknife.BindView;
 import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity
-        implements IMainContact.View, NavigationView.OnNavigationItemSelectedListener {
+        implements IMainContract.View, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -44,7 +44,7 @@ public class MainActivity extends BaseActivity
 
     private TabAdapter mTabAdapter;
 
-    private IMainContact.Presenter mPresenter;
+    private IMainContract.Presenter mPresenter;
 
     @Override
     protected int getPageLayoutID() {

@@ -8,7 +8,7 @@ import com.littlejie.gankio.entity.DataInfo;
 import com.littlejie.gankio.entity.GankInfo;
 import com.littlejie.gankio.exception.GankException;
 import com.littlejie.gankio.http.ApiService;
-import com.littlejie.gankio.modules.contract.ICategoryContact;
+import com.littlejie.gankio.modules.contract.ICategoryContract;
 import com.littlejie.gankio.utils.TimeUtil;
 
 import java.util.List;
@@ -19,33 +19,33 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**
+ * CategoryPresenter，省略了M层
  * Created by littlejie on 2017/3/12.
  */
 
-public class CategoryPresenter implements ICategoryContact.Presenter {
+public class CategoryPresenter implements ICategoryContract.Presenter {
 
-    private ICategoryContact.View mView;
-    private String mCategory;
+    private ICategoryContract.View mView;
     private int mCurrentPage = 1;
 
-    public CategoryPresenter(ICategoryContact.View view) {
+    public CategoryPresenter(ICategoryContract.View view) {
         mView = view;
     }
 
     @Override
     public void initData(Bundle bundle) {
-        mCategory = bundle.getString(Constant.EXTRA_CATEGORY);
+
     }
 
     @Override
-    public boolean isImageCategory() {
-        return Constant.Category.IMAGE.equals(mCategory);
+    public void process() {
+        loadCategory(false);
     }
 
     @Override
     public void loadCategory(final boolean isLoadMore) {
         mCurrentPage = isLoadMore ? ++mCurrentPage : 1;
-        ApiService.getGankApi().getData(mCategory, Constant.COUNT, mCurrentPage)
+        ApiService.getGankApi().getData(mView.getCategory(), Constant.COUNT, mCurrentPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(new Observer<GankInfo<List<DataInfo>>>() {
@@ -59,7 +59,7 @@ public class CategoryPresenter implements ICategoryContact.Presenter {
                         if (listGankInfo.isError()) {
                             throw new GankException("服务器错误");
                         }
-                        mView.updateData(convertTime(listGankInfo.getResults()));
+                        mView.updateData(TimeUtil.convertTime(listGankInfo.getResults()));
                     }
 
                     @Override
@@ -74,12 +74,4 @@ public class CategoryPresenter implements ICategoryContact.Presenter {
                 });
     }
 
-    private List<DataInfo> convertTime(List<DataInfo> dataList) {
-        for (int i = 0; i < dataList.size(); i++) {
-            DataInfo data = dataList.get(i);
-            data.setPublishedTime(TimeUtil.convertTime(data.getPublishedTime()));
-            dataList.set(i, data);
-        }
-        return dataList;
-    }
 }

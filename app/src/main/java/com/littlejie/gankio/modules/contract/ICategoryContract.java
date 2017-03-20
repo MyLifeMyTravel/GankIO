@@ -10,9 +10,16 @@ import java.util.List;
  * Created by littlejie on 2017/3/12.
  */
 
-public interface ICategoryContact {
+public interface ICategoryContract {
 
     interface View {
+
+        /**
+         * 获取当前Item的类型
+         *
+         * @return
+         */
+        String getCategory();
 
         /**
          * 更新列表数据
@@ -53,7 +60,7 @@ public interface ICategoryContact {
          */
         void initData(Bundle bundle);
 
-        boolean isImageCategory();
+        void process();
 
         /**
          * 请求分类数据

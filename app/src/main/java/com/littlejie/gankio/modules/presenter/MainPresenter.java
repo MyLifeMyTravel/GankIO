@@ -7,7 +7,7 @@ import com.littlejie.core.base.Core;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.modules.CategoryFragment;
 import com.littlejie.gankio.modules.DayPushFragment;
-import com.littlejie.gankio.modules.contract.IMainContact;
+import com.littlejie.gankio.modules.contract.IMainContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +16,14 @@ import java.util.List;
  * Created by littlejie on 2017/3/12.
  */
 
-public class MainPresenter implements IMainContact.Presenter {
+public class MainPresenter implements IMainContract.Presenter {
 
-    private IMainContact.View mView;
+    private IMainContract.View mView;
 
     private String[] mTitles;
     private List<Fragment> mFragmentList;
 
-    public MainPresenter(IMainContact.View view) {
+    public MainPresenter(IMainContract.View view) {
         mView = view;
     }
 
@@ -45,7 +45,7 @@ public class MainPresenter implements IMainContact.Presenter {
     @Override
     public void process() {
         mView.setTab(mFragmentList, mTitles);
-        mView.setSelectPage(1);
+        mView.setSelectPage(0);
     }
 
 }
