@@ -42,6 +42,7 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     private ICategoryContract.Presenter mPresenter;
     private boolean isLoadMore;
     private String mCategory;
+    private int mOffset;
 
     public static CategoryFragment newInstance(String category) {
 
@@ -54,6 +55,13 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        mPresenter.onSaveInstanceState(outState);
+        outState.putInt("offset", mRecyclerView.computeVerticalScrollOffset());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected int getPageLayoutID() {
         return R.layout.fragment_category;
     }
@@ -61,17 +69,20 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     @Override
     protected void initData(Bundle savedInstanceState) {
         mPresenter = new CategoryPresenter(this);
+        if (savedInstanceState != null) {
+            mOffset = savedInstanceState.getInt("offset");
+        }
         if (getArguments() != null) {
             //因为category与UI显示相关，所以放在View中处理
             mCategory = getArguments().getString(Constant.EXTRA_CATEGORY);
-            mPresenter.initData(getArguments());
         }
+        mPresenter.initData(getArguments(), savedInstanceState);
     }
 
     @Override
     protected void initView(View view, Bundle savedInstanceState) {
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(2)));
+        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(5)));
         //如果是图片类目，则按瀑布流显示否则按照线性布局显示
         mRecyclerView.setLayoutManager(Constant.Category.IMAGE.equals(mCategory)
                 ? new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
@@ -106,7 +117,8 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
 
     @Override
     protected void process(Bundle savedInstanceState) {
-        mPresenter.process();
+        mPresenter.process(savedInstanceState);
+        offsetVertical(mOffset);
     }
 
     @Override
@@ -115,14 +127,18 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     }
 
     @Override
-    public void updateData(List<DataInfo> dataList) {
+    public void updateList(List<DataInfo> dataList) {
         if (isLoadMore) {
             stopLoadMoreRefresh();
-            mAdapter.addDataList(dataList);
         } else {
             stopPullRefresh();
-            mAdapter.setDataList(dataList);
         }
+        mAdapter.setDataList(dataList);
+    }
+
+    @Override
+    public void offsetVertical(int offset) {
+        mRecyclerView.offsetChildrenVertical(offset);
     }
 
     @Override

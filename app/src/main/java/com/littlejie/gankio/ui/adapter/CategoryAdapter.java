@@ -156,7 +156,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     @Override
     public void onClick(View v) {
         if (mOnItemClickListener != null) {
-            mOnItemClickListener.onItemClick(v, (int) v.getTag());
+            int position = (int) v.getTag();
+            //date类型的type不响应点击事件
+            if (getItemViewType(position) == TYPE_DATE) {
+                return;
+            }
+            mOnItemClickListener.onItemClick(v, position);
         }
     }
 

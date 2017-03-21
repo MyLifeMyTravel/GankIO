@@ -1,5 +1,8 @@
 package com.littlejie.gankio.entity;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import com.google.gson.annotations.SerializedName;
 
 import java.util.List;
@@ -9,7 +12,7 @@ import java.util.List;
  * Created by littlejie on 2017/3/11.
  */
 
-public class DataInfo {
+public class DataInfo implements Parcelable{
 
     /**
      * "_id":"58c20bed421aa90f13178638",
@@ -38,6 +41,34 @@ public class DataInfo {
     private String url;
     private boolean used;
     private String who;
+
+    public DataInfo() {
+    }
+
+    protected DataInfo(Parcel in) {
+        id = in.readString();
+        createTime = in.readString();
+        desc = in.readString();
+        images = in.createStringArrayList();
+        source = in.readString();
+        publishedTime = in.readString();
+        type = in.readString();
+        url = in.readString();
+        used = in.readByte() != 0;
+        who = in.readString();
+    }
+
+    public static final Creator<DataInfo> CREATOR = new Creator<DataInfo>() {
+        @Override
+        public DataInfo createFromParcel(Parcel in) {
+            return new DataInfo(in);
+        }
+
+        @Override
+        public DataInfo[] newArray(int size) {
+            return new DataInfo[size];
+        }
+    };
 
     public String getId() {
         return id;
@@ -133,5 +164,24 @@ public class DataInfo {
                 ", used=" + used +
                 ", who='" + who + '\'' +
                 '}';
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(id);
+        dest.writeString(createTime);
+        dest.writeString(desc);
+        dest.writeStringList(images);
+        dest.writeString(source);
+        dest.writeString(publishedTime);
+        dest.writeString(type);
+        dest.writeString(url);
+        dest.writeByte((byte) (used ? 1 : 0));
+        dest.writeString(who);
     }
 }

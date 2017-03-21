@@ -63,7 +63,7 @@ public class DayPushFragment extends BaseFragment implements IDayPushContract.Vi
     @Override
     protected void initView(View view, Bundle savedInstanceState) {
         mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(2)));
+        mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(5)));
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         mAdapter = new CategoryAdapter();
         mAdapter.setDayPublish(true);
@@ -104,11 +104,10 @@ public class DayPushFragment extends BaseFragment implements IDayPushContract.Vi
     public void update(List<DataInfo> dataList) {
         if (isLoadMore) {
             stopLoadMoreRefresh();
-            mAdapter.addDataList(dataList);
         } else {
             stopPullRefresh();
-            mAdapter.setDataList(dataList);
         }
+        mAdapter.setDataList(dataList);
     }
 
     @Override

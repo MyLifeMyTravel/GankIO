@@ -26,7 +26,14 @@ public interface ICategoryContract {
          *
          * @param dataList
          */
-        void updateData(List<DataInfo> dataList);
+        void updateList(List<DataInfo> dataList);
+
+        /**
+         * 垂直偏移距离
+         *
+         * @param offset
+         */
+        void offsetVertical(int offset);
 
         /**
          * 停止下拉加载更多
@@ -54,13 +61,21 @@ public interface ICategoryContract {
     interface Presenter {
 
         /**
+         * 保存状态
+         *
+         * @param outState
+         */
+        void onSaveInstanceState(Bundle outState);
+
+        /**
          * 初始化数据
          *
-         * @param bundle
+         * @param bundle             参数
+         * @param savedInstanceState
          */
-        void initData(Bundle bundle);
+        void initData(Bundle bundle, Bundle savedInstanceState);
 
-        void process();
+        void process(Bundle savedInstanceState);
 
         /**
          * 请求分类数据

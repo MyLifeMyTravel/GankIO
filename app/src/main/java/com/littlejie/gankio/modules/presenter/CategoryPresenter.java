@@ -1,6 +1,7 @@
 package com.littlejie.gankio.modules.presenter;
 
 import android.os.Bundle;
+import android.util.Log;
 
 import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
@@ -11,6 +12,7 @@ import com.littlejie.gankio.http.ApiService;
 import com.littlejie.gankio.modules.contract.ICategoryContract;
 import com.littlejie.gankio.utils.TimeUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import io.reactivex.Observer;
@@ -25,26 +27,45 @@ import io.reactivex.schedulers.Schedulers;
 
 public class CategoryPresenter implements ICategoryContract.Presenter {
 
+    private static final String TAG = CategoryPresenter.class.getSimpleName();
     private ICategoryContract.View mView;
-    private int mCurrentPage = 1;
+    private int mCurrentPage = 0;
+
+    private List<DataInfo> mDataList = new ArrayList<>();
 
     public CategoryPresenter(ICategoryContract.View view) {
         mView = view;
     }
 
     @Override
-    public void initData(Bundle bundle) {
-
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("data", (ArrayList<DataInfo>) mDataList);
+        outState.putInt("page", mCurrentPage);
     }
 
     @Override
-    public void process() {
-        loadCategory(false);
+    public void initData(Bundle bundle, Bundle savedInstanceState) {
+        if (savedInstanceState != null) {
+            mDataList = savedInstanceState.getParcelableArrayList("data");
+            mCurrentPage = savedInstanceState.getInt("page", 0);
+            Log.d(TAG, "page = " + mCurrentPage + ";data = " + mDataList);
+        }
+    }
+
+    @Override
+    public void process(Bundle savedInstanceState) {
+        if (mDataList != null && mDataList.size() != 0) {
+            mView.updateList(mDataList);
+        } else {
+            loadCategory(false);
+        }
     }
 
     @Override
     public void loadCategory(final boolean isLoadMore) {
-        mCurrentPage = isLoadMore ? ++mCurrentPage : 1;
+        //如果为下拉刷新，则获取第一页数据
+        //否则，页数递增
+        mCurrentPage = isLoadMore ? ++mCurrentPage : 0;
         ApiService.getGankApi().getData(mView.getCategory(), Constant.COUNT, mCurrentPage)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
@@ -59,7 +80,13 @@ public class CategoryPresenter implements ICategoryContract.Presenter {
                         if (listGankInfo.isError()) {
                             throw new GankException("服务器错误");
                         }
-                        mView.updateData(TimeUtil.convertTime(listGankInfo.getResults()));
+                        List<DataInfo> dataList = TimeUtil.convertTime(listGankInfo.getResults());
+                        if (isLoadMore) {
+                            mDataList.addAll(dataList);
+                        } else {
+                            mDataList = dataList;
+                        }
+                        mView.updateList(mDataList);
                     }
 
                     @Override
