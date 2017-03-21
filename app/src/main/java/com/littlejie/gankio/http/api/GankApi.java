@@ -1,6 +1,7 @@
 package com.littlejie.gankio.http.api;
 
 import com.littlejie.gankio.entity.DataInfo;
+import com.littlejie.gankio.entity.DayInfo;
 import com.littlejie.gankio.entity.GankInfo;
 
 import java.util.List;
@@ -10,7 +11,6 @@ import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
-import retrofit2.http.Url;
 
 /**
  * Gank IO Api 接口
@@ -21,7 +21,7 @@ import retrofit2.http.Url;
 public interface GankApi {
 
     @GET("day/{date}")
-    Observable<GankInfo<String>> getDayGank(@Path("date") String date);
+    Observable<GankInfo<DayInfo>> getDayGank(@Path("date") String date);
 
     /**
      * 获取发布干货的日期
@@ -29,7 +29,7 @@ public interface GankApi {
      * @return
      */
     @GET("day/history")
-    Call<ResponseBody> getPublishDay();
+    Observable<GankInfo<List<String>>> getPublishDays();
 
     @GET("search/query/listview/category/{category}/count/50/page/{page}")
     Call<ResponseBody> search(@Path("category") String category, @Path("page") int page);
@@ -88,6 +88,4 @@ public interface GankApi {
     @GET("random/data/{type}/{count}")
     Call<ResponseBody> getRandomData(@Path("type") String type, @Path("count") int count);
 
-    @GET
-    Call<String> getUrl(@Url String url);
 }

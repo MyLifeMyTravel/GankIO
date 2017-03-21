@@ -21,22 +21,20 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <com.cjj.MaterialRefreshLayout
+    <android.support.v4.widget.SwipeRefreshLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/swipe_refresh"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:overlay="true"
-        app:wave_show="false"
         tools:context="com.littlejie.gankio.modules.WebActivity">
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
-            <WebView
+            <com.littlejie.gankio.ui.ScrollWebView
                 android:id="@+id/web_view"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
@@ -49,6 +47,6 @@
                 android:layout_alignParentTop="true"
                 android:max="100" />
         </RelativeLayout>
-    </com.cjj.MaterialRefreshLayout>
+    </android.support.v4.widget.SwipeRefreshLayout>
 
 </android.support.design.widget.CoordinatorLayout>

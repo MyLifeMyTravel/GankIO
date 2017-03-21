@@ -1,6 +1,8 @@
 package com.littlejie.gankio.modules;
 
+import android.support.annotation.NonNull;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.GravityCompat;
@@ -13,19 +15,19 @@ import android.view.MenuItem;
 import android.view.View;
 
 import com.littlejie.core.base.BaseActivity;
-import com.littlejie.core.base.Core;
 import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.R;
+import com.littlejie.gankio.modules.contract.IMainContract;
+import com.littlejie.gankio.modules.presenter.MainPresenter;
 import com.littlejie.gankio.ui.adapter.TabAdapter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import butterknife.BindView;
 import butterknife.OnClick;
 
 public class MainActivity extends BaseActivity
-        implements NavigationView.OnNavigationItemSelectedListener {
+        implements IMainContract.View, NavigationView.OnNavigationItemSelectedListener {
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
@@ -42,8 +44,7 @@ public class MainActivity extends BaseActivity
 
     private TabAdapter mTabAdapter;
 
-    private String[] mTitles;
-    private List<Fragment> mFragmentList;
+    private IMainContract.Presenter mPresenter;
 
     @Override
     protected int getPageLayoutID() {
@@ -52,17 +53,8 @@ public class MainActivity extends BaseActivity
 
     @Override
     protected void initData() {
-        mTitles = Core.getStringArray(R.array.category);
-        initFragmentList();
-    }
-
-    private void initFragmentList() {
-        mFragmentList = new ArrayList<>();
-        mFragmentList.add(DayPushFragment.newInstance());
-
-        for (int i = 1; i < mTitles.length; i++) {
-            mFragmentList.add(CategoryFragment.newInstance(mTitles[i]));
-        }
+        mPresenter = new MainPresenter(this);
+        mPresenter.initData(getIntent());
     }
 
     @Override
@@ -86,16 +78,13 @@ public class MainActivity extends BaseActivity
 
     @OnClick(R.id.fab)
     void onFabClick(View view) {
-        
-//        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show();
+        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show();
     }
 
     @Override
     protected void process() {
-        mTabAdapter.setData(mFragmentList, mTitles);
-        //默认选中福利
-        mViewPager.setCurrentItem(1);
+        mPresenter.process();
     }
 
     @Override
@@ -117,7 +106,8 @@ public class MainActivity extends BaseActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_search:
-                ToastUtil.showDefaultToast("搜索");
+                //点击事件无效，除非去掉main.xml中的actionViewClass属性
+                showMessage("搜索");
                 break;
         }
         return super.onOptionsItemSelected(item);
@@ -125,7 +115,7 @@ public class MainActivity extends BaseActivity
 
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
@@ -143,7 +133,30 @@ public class MainActivity extends BaseActivity
 
         }
 
+        showMessage(item.getTitle());
         mDrawerLayout.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public void setSelectPage(int item) {
+        mViewPager.setCurrentItem(item);
+    }
+
+    @Override
+    public void setTab(List<Fragment> fragmentList, String[] titles) {
+        mTabAdapter.setData(fragmentList, titles);
+        //默认选中福利
+        mViewPager.setCurrentItem(1);
+    }
+
+    @Override
+    public void showMessage(int msg) {
+        ToastUtil.showDefaultToast(msg);
+    }
+
+    @Override
+    public void showMessage(CharSequence msg) {
+        ToastUtil.showDefaultToast(msg);
     }
 }

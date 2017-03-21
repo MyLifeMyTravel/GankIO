@@ -1,10 +1,10 @@
 package com.littlejie.gankio.modules;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.text.TextUtils;
 import android.view.View;
 
 import com.cjj.MaterialRefreshLayout;
@@ -16,27 +16,22 @@ import com.littlejie.core.utils.ToastUtil;
 import com.littlejie.gankio.Constant;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
-import com.littlejie.gankio.entity.GankInfo;
-import com.littlejie.gankio.exception.GankException;
-import com.littlejie.gankio.http.ApiService;
+import com.littlejie.gankio.modules.contract.ICategoryContract;
+import com.littlejie.gankio.modules.presenter.CategoryPresenter;
 import com.littlejie.gankio.ui.adapter.CategoryAdapter;
 import com.littlejie.gankio.ui.decoration.SpaceDecoration;
-import com.littlejie.gankio.utils.TimeUtil;
+import com.littlejie.gankio.utils.AppCommand;
 
 import java.util.List;
 
 import butterknife.BindView;
-import io.reactivex.Observer;
-import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.disposables.Disposable;
-import io.reactivex.schedulers.Schedulers;
 
 /**
- * 按Gank IO中的类目显示信息
+ * 按Gank IO中的类目显示信息(包括每日精选)
  * Created by littlejie on 2017/3/11.
  */
 
-public class CategoryFragment extends BaseFragment {
+public class CategoryFragment extends BaseFragment implements ICategoryContract.View {
 
     @BindView(R.id.swipe_refresh)
     MaterialRefreshLayout mSwipeRefreshLayout;
@@ -44,8 +39,10 @@ public class CategoryFragment extends BaseFragment {
     RecyclerView mRecyclerView;
     private CategoryAdapter mAdapter;
 
+    private ICategoryContract.Presenter mPresenter;
+    private boolean isLoadMore;
     private String mCategory;
-    private int mCurrentPage = 1;
+    private int mOffset;
 
     public static CategoryFragment newInstance(String category) {
 
@@ -58,25 +55,42 @@ public class CategoryFragment extends BaseFragment {
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        mPresenter.onSaveInstanceState(outState);
+        outState.putInt("offset", mRecyclerView.computeVerticalScrollOffset());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected int getPageLayoutID() {
         return R.layout.fragment_category;
     }
 
     @Override
     protected void initData(Bundle savedInstanceState) {
+        mPresenter = new CategoryPresenter(this);
+        if (savedInstanceState != null) {
+            //恢复之前的RecyclerView的偏移量
+            mOffset = savedInstanceState.getInt("offset");
+        }
         if (getArguments() != null) {
+            //因为category与UI显示相关，所以放在View中处理
             mCategory = getArguments().getString(Constant.EXTRA_CATEGORY);
         }
+        mPresenter.initData(getArguments(), savedInstanceState);
     }
 
     @Override
     protected void initView(View view, Bundle savedInstanceState) {
         mRecyclerView.setHasFixedSize(true);
         mRecyclerView.addItemDecoration(new SpaceDecoration(DisplayUtil.dp2px(5)));
+        //如果是图片类目，则按瀑布流显示否则按照线性布局显示
         mRecyclerView.setLayoutManager(Constant.Category.IMAGE.equals(mCategory)
                 ? new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
                 : new LinearLayoutManager(getContext()));
         mAdapter = new CategoryAdapter();
+        //设置是否为每日精选
+        mAdapter.setDayPublish(Constant.Category.DAY.equals(mCategory));
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -85,14 +99,15 @@ public class CategoryFragment extends BaseFragment {
         mSwipeRefreshLayout.setOnRefreshListener(new OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mCurrentPage = 1;
-                getData(mCurrentPage, false);
+                isLoadMore = false;
+                mPresenter.pullToRefresh(false);
             }
         });
         mSwipeRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
-                getData(++mCurrentPage, true);
+                isLoadMore = true;
+                mPresenter.pullToRefresh(true);
             }
         });
         mAdapter.setOnItemClickListener(new CategoryAdapter.OnItemClickListener() {
@@ -105,66 +120,62 @@ public class CategoryFragment extends BaseFragment {
 
     @Override
     protected void process(Bundle savedInstanceState) {
-        getData(1, false);
+        mPresenter.process(savedInstanceState);
+        setVerticalOffset(mOffset);
     }
 
-    private void getData(int page, final boolean isLoadMore) {
-        ApiService.getGankApi().getData(mCategory, Constant.COUNT, page)
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<GankInfo<List<DataInfo>>>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onNext(GankInfo<List<DataInfo>> listGankInfo) {
-                        if (listGankInfo.isError()) {
-                            throw new GankException("服务器错误");
-                        }
-                        finishRefresh(isLoadMore);
-                        List<DataInfo> dataList = convertTime(listGankInfo.getResults());
-                        if (isLoadMore) {
-                            mAdapter.addDataList(dataList);
-                        } else {
-                            mAdapter.setDataList(dataList);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        ToastUtil.showDefaultToast(R.string.toast_request_fail);
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
+    @Override
+    public String getCategory() {
+        return mCategory;
     }
 
-    private List<DataInfo> convertTime(List<DataInfo> dataList) {
-        for (int i = 0; i < dataList.size(); i++) {
-            DataInfo data = dataList.get(i);
-            data.setPublishedTime(TimeUtil.convertTime(data.getPublishedTime()));
-            dataList.set(i, data);
-        }
-        return dataList;
-    }
-
-    private void finishRefresh(boolean isLoadMore) {
+    @Override
+    public void updateList(List<DataInfo> dataList) {
         if (isLoadMore) {
-            mSwipeRefreshLayout.finishRefreshLoadMore();
+            stopLoadMoreRefresh();
         } else {
-            mSwipeRefreshLayout.finishRefresh();
+            stopPullRefresh();
         }
+        mAdapter.setDataList(dataList);
     }
 
-    private void toWebActivity(String url) {
-        Intent intent = new Intent(getContext(), WebActivity.class);
-        intent.putExtra(Constant.EXTRA_STRING, url);
-        startActivity(intent);
+    @Override
+    public void setVerticalOffset(int offset) {
+        mRecyclerView.offsetChildrenVertical(offset);
+    }
+
+    @Override
+    public boolean isLoadMore() {
+        return isLoadMore;
+    }
+
+    @Override
+    public void stopPullRefresh() {
+        mSwipeRefreshLayout.finishRefresh();
+    }
+
+    @Override
+    public void stopLoadMoreRefresh() {
+        mSwipeRefreshLayout.finishRefreshLoadMore();
+    }
+
+    @Override
+    public void toWebActivity(String url) {
+        if (TextUtils.isEmpty(url)) {
+            showMessage("错误的URL");
+            return;
+        }
+        AppCommand.openWebView(getContext(), url);
+    }
+
+    @Override
+    public void showMessage(int msg) {
+        ToastUtil.showDefaultToast(msg);
+    }
+
+    @Override
+    public void showMessage(CharSequence msg) {
+        ToastUtil.showDefaultToast(msg);
     }
 
 }

@@ -20,7 +20,7 @@ public class Constant {
      * Gank IO 类目类型，图片和视频需要特殊处理
      */
     public static final class Category {
+        public static final String DAY = "每日精选";
         public static final String IMAGE = "福利";
-        public static final String VIDEO = "video";
     }
 }

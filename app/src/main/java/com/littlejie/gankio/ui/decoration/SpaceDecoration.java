@@ -19,11 +19,18 @@ public class SpaceDecoration extends RecyclerView.ItemDecoration {
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
         super.getItemOffsets(outRect, view, parent, state);
+//        int position = parent.getChildAdapterPosition(view);
+//        int type = parent.getAdapter().getItemViewType(position);
+//        if (type == CategoryAdapter.TYPE_DATE) {
+//            outRect.left = mSpace;
+//            outRect.top = mSpace;
+//            outRect.bottom = -mSpace;
+//            outRect.right = mSpace;
+//            return;
+//        }
         outRect.left = mSpace;
         outRect.right = mSpace;
         outRect.bottom = mSpace;
-//        if (parent.getChildAdapterPosition(view) == 0) {
         outRect.top = mSpace;
-//        }
     }
 }
