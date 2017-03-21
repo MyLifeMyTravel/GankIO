@@ -126,6 +126,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             holder.ivImage.setImage(images.get(0));
         }
         holder.tvAuthor.setText(data.getWho());
+        //如果为每日精选，则不显示发布时间
         holder.tvPublish.setText(isDayPublish ? data.getType() : data.getPublishedTime());
         holder.tvDesc.setText(data.getDesc());
     }
@@ -135,10 +136,16 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         //随机生成图片高度
         if (mHeightMap.size() <= position) {
-            mHeightMap.put(position, (int) (Math.random() * 300 + 500));
+            mHeightMap.put(position, generaHeight());
         }
         ViewGroup.LayoutParams lp = holder.mImageView.getLayoutParams();
-        lp.height = mHeightMap.get(position);
+        //防止产生height为空
+        Integer height = mHeightMap.get(position);
+        if (height == null) {
+            height = generaHeight();
+            mHeightMap.put(position, height);
+        }
+        lp.height = height;
         holder.mImageView.setLayoutParams(lp);
 
         if (!TextUtils.isEmpty(url)) {
@@ -146,6 +153,10 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         } else {
             holder.mImageView.setImage(R.mipmap.ic_launcher);
         }
+    }
+
+    private int generaHeight() {
+        return (int) (Math.random() * 300 + 500);
     }
 
     @Override
