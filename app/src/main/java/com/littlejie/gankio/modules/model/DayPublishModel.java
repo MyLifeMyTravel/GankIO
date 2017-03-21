@@ -1,14 +1,11 @@
-package com.littlejie.gankio.modules.presenter;
+package com.littlejie.gankio.modules.model;
 
-import android.os.Bundle;
-
-import com.littlejie.gankio.R;
 import com.littlejie.gankio.entity.DataInfo;
 import com.littlejie.gankio.entity.DayInfo;
 import com.littlejie.gankio.entity.GankInfo;
 import com.littlejie.gankio.exception.GankException;
 import com.littlejie.gankio.http.ApiService;
-import com.littlejie.gankio.modules.contract.IDayPushContract;
+import com.littlejie.gankio.modules.contract.ICategoryContract;
 import com.littlejie.gankio.utils.TimeUtil;
 
 import java.util.List;
@@ -19,28 +16,18 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.schedulers.Schedulers;
 
 /**
- * Created by littlejie on 2017/3/20.
+ * 请求每日精选数据的Model
+ * Created by littlejie on 2017/3/21.
  */
 
-public class DayPushPresenter implements IDayPushContract.Presenter {
+public class DayPublishModel implements ICategoryContract.DayPublishModel {
 
-    private IDayPushContract.View mView;
     private List<String> mPublishDayList;
 
-    private int mCurrentPage;
+    private ICategoryContract.Presenter mPresenter;
 
-    public DayPushPresenter(IDayPushContract.View view) {
-        mView = view;
-    }
-
-    @Override
-    public void initData(Bundle bundle) {
-
-    }
-
-    @Override
-    public void process() {
-        loadPublishDays();
+    public DayPublishModel(ICategoryContract.Presenter presenter) {
+        mPresenter = presenter;
     }
 
     @Override
@@ -60,7 +47,7 @@ public class DayPushPresenter implements IDayPushContract.Presenter {
                             throw new GankException("服务器错误");
                         }
                         mPublishDayList = listGankInfo.getResults();
-                        loadDayPush(false);
+                        loadData(null, 0);
                     }
 
                     @Override
@@ -75,15 +62,13 @@ public class DayPushPresenter implements IDayPushContract.Presenter {
                 });
     }
 
-    private String convert(String time) {
-        return time.replace("-", "/");
-    }
-
     @Override
-    public void loadDayPush(boolean isLoadMore) {
-        //如果为下拉刷新，则数据重置
-        mCurrentPage = isLoadMore ? ++mCurrentPage : 0;
-        String date = convert(mPublishDayList.get(mCurrentPage));
+    public void loadData(String category, int index) {
+        if (mPublishDayList == null) {
+            loadPublishDays();
+            return;
+        }
+        String date = convert(mPublishDayList.get(index));
         final DataInfo dInfo = new DataInfo();
         dInfo.setPublishedTime(date);
         ApiService.getGankApi().getDayGank(date)
@@ -101,13 +86,14 @@ public class DayPushPresenter implements IDayPushContract.Presenter {
                             throw new GankException("服务器错误");
                         }
                         List<DataInfo> dataList = TimeUtil.convertTime(dayInfoGankInfo.getResults().getData());
+                        //将日期添加到数据的最顶部
                         dataList.add(0, dInfo);
-                        mView.update(dataList);
+                        mPresenter.loadData(dataList);
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        mView.showMessage(R.string.toast_request_fail);
+                        mPresenter.fail(e.getMessage());
                     }
 
                     @Override
@@ -117,4 +103,7 @@ public class DayPushPresenter implements IDayPushContract.Presenter {
                 });
     }
 
+    private String convert(String time) {
+        return time.replace("-", "/");
+    }
 }

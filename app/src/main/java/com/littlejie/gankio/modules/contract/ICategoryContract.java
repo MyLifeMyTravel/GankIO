@@ -33,7 +33,14 @@ public interface ICategoryContract {
          *
          * @param offset
          */
-        void offsetVertical(int offset);
+        void setVerticalOffset(int offset);
+
+        /**
+         * 判断是下拉刷新还是上拉加载更多
+         *
+         * @return
+         */
+        boolean isLoadMore();
 
         /**
          * 停止下拉加载更多
@@ -82,6 +89,52 @@ public interface ICategoryContract {
          *
          * @param isLoadMore 是否是加载更多
          */
-        void loadCategory(boolean isLoadMore);
+        void pullToRefresh(boolean isLoadMore);
+
+        /**
+         * 加载数据，通过 Model 中对应方法获取
+         *
+         * @param dataList
+         */
+        void loadData(List<DataInfo> dataList);
+
+        /**
+         * 网络请求失败
+         *
+         * @param msg
+         */
+        void fail(String msg);
+    }
+
+    /**
+     * 普通类目的Model
+     */
+    interface Model {
+
+        /**
+         * 请求数据数据
+         *
+         * @param category
+         * @param page
+         */
+        void loadData(String category, int page);
+    }
+
+    /**
+     * 每日精选类目的Model
+     */
+    interface DayPublishModel extends Model {
+
+        /**
+         * 获取发布干货的日期
+         */
+        void loadPublishDays();
+
+//        /**
+//         * 加载每日精选数据
+//         *
+//         * @param index 日期索引
+//         */
+//        void loadDayPush(int index);
     }
 }

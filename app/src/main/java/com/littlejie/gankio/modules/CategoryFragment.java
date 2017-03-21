@@ -27,7 +27,7 @@ import java.util.List;
 import butterknife.BindView;
 
 /**
- * 按Gank IO中的类目显示信息
+ * 按Gank IO中的类目显示信息(包括每日精选)
  * Created by littlejie on 2017/3/11.
  */
 
@@ -70,6 +70,7 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     protected void initData(Bundle savedInstanceState) {
         mPresenter = new CategoryPresenter(this);
         if (savedInstanceState != null) {
+            //恢复之前的RecyclerView的偏移量
             mOffset = savedInstanceState.getInt("offset");
         }
         if (getArguments() != null) {
@@ -88,6 +89,8 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
                 ? new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL)
                 : new LinearLayoutManager(getContext()));
         mAdapter = new CategoryAdapter();
+        //设置是否为每日精选
+        mAdapter.setDayPublish(Constant.Category.DAY.equals(mCategory));
         mRecyclerView.setAdapter(mAdapter);
     }
 
@@ -97,14 +100,14 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
             @Override
             public void onRefresh() {
                 isLoadMore = false;
-                mPresenter.loadCategory(false);
+                mPresenter.pullToRefresh(false);
             }
         });
         mSwipeRefreshLayout.setOnLoadMoreListener(new OnLoadMoreListener() {
             @Override
             public void onLoadMore() {
                 isLoadMore = true;
-                mPresenter.loadCategory(true);
+                mPresenter.pullToRefresh(true);
             }
         });
         mAdapter.setOnItemClickListener(new CategoryAdapter.OnItemClickListener() {
@@ -118,7 +121,7 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     @Override
     protected void process(Bundle savedInstanceState) {
         mPresenter.process(savedInstanceState);
-        offsetVertical(mOffset);
+        setVerticalOffset(mOffset);
     }
 
     @Override
@@ -137,8 +140,13 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     }
 
     @Override
-    public void offsetVertical(int offset) {
+    public void setVerticalOffset(int offset) {
         mRecyclerView.offsetChildrenVertical(offset);
+    }
+
+    @Override
+    public boolean isLoadMore() {
+        return isLoadMore;
     }
 
     @Override

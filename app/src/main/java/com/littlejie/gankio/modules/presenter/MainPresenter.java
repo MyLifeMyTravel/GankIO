@@ -6,7 +6,6 @@ import android.support.v4.app.Fragment;
 import com.littlejie.core.base.Core;
 import com.littlejie.gankio.R;
 import com.littlejie.gankio.modules.CategoryFragment;
-import com.littlejie.gankio.modules.DayPushFragment;
 import com.littlejie.gankio.modules.contract.IMainContract;
 
 import java.util.ArrayList;
@@ -35,9 +34,9 @@ public class MainPresenter implements IMainContract.Presenter {
 
     private void initFragmentList() {
         mFragmentList = new ArrayList<>();
-        mFragmentList.add(DayPushFragment.newInstance());
+//        mFragmentList.add(DayPushFragment.newInstance());
 
-        for (int i = 1; i < mTitles.length; i++) {
+        for (int i = 0; i < mTitles.length; i++) {
             mFragmentList.add(CategoryFragment.newInstance(mTitles[i]));
         }
     }
