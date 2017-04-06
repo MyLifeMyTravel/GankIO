@@ -57,6 +57,7 @@ public class CategoryFragment extends BaseFragment implements ICategoryContract.
     @Override
     public void onSaveInstanceState(Bundle outState) {
         mPresenter.onSaveInstanceState(outState);
+        //计算出当前RecyclerView垂直方向的偏移量
         outState.putInt("offset", mRecyclerView.computeVerticalScrollOffset());
         super.onSaveInstanceState(outState);
     }
